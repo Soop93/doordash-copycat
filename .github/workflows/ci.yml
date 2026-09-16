@@ -26,7 +26,8 @@ jobs:
           curl --fail http://localhost:8080/status/   
           curl --fail http://localhost:8080/
           curl --fail http://localhost:8080/estimate-time/10
-          curl --fail -X POST http://localhost:8080/calculate-fee/ -H "Content-Type: application/json" -d '{"distance_km": 10, "weight_kg" :100}'    
+          curl --fail -X POST http://localhost:8080/calculate-fee/ -H "Content-Type: application/json" -d '{"distance_km": 10, "weight_kg" :100}' 
+          curl --fail http://localhost:8080/health/   
       
       - name: Stop and Clean
         if: always()              # Si une commande échoue avant, GH saute toutes les étapes
