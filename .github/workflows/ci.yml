@@ -1,0 +1,40 @@
+name: Doordash Pipeline           
+
+on:                         # QUAND se déclencher
+  push:
+    branches: [ main ]      
+  workflow_dispatch:
+
+jobs:
+  delivery:           
+    runs-on: ubuntu-latest  # OÙ : une machine virtuelle Linux louée par GitHub
+    steps:                  
+      - name: Checkout code
+        uses: actions/checkout@v4  #récupère le contenu de mon repo sur la VM
+
+      - name: Build docker image
+        run: docker build -t doordash/delivery-fee-service .  #On build l'image
+
+      - name: Run the container
+        run: docker run -d -p 8080:8090 --name doordash-app doordash/delivery-fee-service  #on lance le conteneur (nom rajouté)
+                                                                                           #ne rien mettre après l'image (considéré comme un cmd)
+      - name: temps de repos      #On évite de tester les endpoints alors que le conteneur n'a pas commencé à tourner
+        run: sleep 5
+
+      - name: test des endpoints    # --fail pour forcer une erreur >=400 si elle se produit
+        run: |
+          curl --fail http://localhost:8080/status/   
+          curl --fail http://localhost:8080/
+          curl --fail http://localhost:8080/estimate-time/10
+          curl --fail -X POST http://localhost:8080/calculate-fee/ -H "Content-Type: application/json" -d '{"distance_km": 10, "weight_kg" :100}'    
+      
+      - name: Stop and Clean
+        if: always()              # Si une commande échoue avant, GH saute toutes les étapes
+                                    #On s'assure que les 2 étapes se produisent
+        run: |
+          docker stop doordash-app
+          docker rm doordash-app
+        
+          
+
+
